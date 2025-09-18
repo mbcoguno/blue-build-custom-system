@@ -60,10 +60,11 @@ modules:
           - org.mozilla.Thunderbird
           - org.prismlauncher.PrismLauncher
           - org.sonic3air.Sonic3AIR
-          - org.freedesktop.Platform.VulkanLayer.gamescope//24.08
-          - org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08
-          - org.freedesktop.Platform.VulkanLayer.MangoHud//24.08
-          - org.freedesktop.Platform.VulkanLayer.OBSVkCapture//24.08
+          # Branches not support in v2 because it use `flathub.org/api/v2/stats/` API.
+          # - org.freedesktop.Platform.VulkanLayer.gamescope//24.08
+          # - org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08
+          # - org.freedesktop.Platform.VulkanLayer.MangoHud//24.08
+          # - org.freedesktop.Platform.VulkanLayer.OBSVkCapture//24.08
       - scope: user # Also add Flathub user repo, but no user packages
 
   - type: bling
