@@ -1,0 +1,11 @@
+{
+  "debug": true,
+  "experimental": true,
+  "features": {
+    "cdi": true,
+    "containerd-snapshotter": true
+  },
+  "ipv6": true,
+  "userns-remap": "bazzite",
+  "live-restore": true
+}
