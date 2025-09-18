@@ -1,13 +1,13 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 # image will be published to ghcr.io/<user>/<name>
-name: template
+name: blue-build-custom-system
 # description will be included in the image's metadata
-description: This is my personal OS image.
+description: This is my personal OS image with my favorite tools.
 
 # the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/ublue-os/silverblue-main
-image-version: 42 # latest is also supported if you want new updates ASAP
+base-image: ghcr.io/ublue-os/bazzite-dx
+image-version: stable # latest is also supported if you want new updates ASAP
 
 # module configuration, executed in order
 # you can include multiple instances of the same module
@@ -17,20 +17,25 @@ modules:
       - source: system
         destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
 
+  # https://blue-build.org/blog/dnf-module/
   - type: dnf
+    # https://github.com/boredsquirrel/browserscript-fedora-atomic
     repos:
+      files:
+        - vivaldi-x86_64.repo
+        - https://openrazer.github.io/hardware:razer.repo
       copr:
-        - atim/starship
+        - secureblue/bubblejail
+      keys:
+        - https://repo.vivaldi.com/archive/linux_signing_key.pub
+        - https://download.opensuse.org/repositories/hardware:/razer/Fedora_%OS_VERSION%/repodata/repomd.xml.key
     install:
       packages:
-        - micro
-        - starship
-    remove:
-      packages:
-        # example: removing firefox (in favor of the flatpak)
-        # "firefox" is the main package, "firefox-langpacks" is a dependency
-        - firefox
-        - firefox-langpacks # also remove firefox dependency (not required for all packages, this is a special case)
+        - vivaldi-stable
+        - bubblejail
+        - openrazer-daemon
+    optfix:
+      - vivaldi
 
   - type: default-flatpaks
     configurations:
@@ -38,8 +43,46 @@ modules:
         scope: system
         # If no repo information is specified, Flathub will be used by default
         install: # system flatpaks we want all users to have and not remove
-          - org.mozilla.firefox
-          - org.gnome.Loupe
+          - app.polychromatic.controller
+          - com.bitwarden.desktop
+          - com.discordapp.Discord
+          - com.github.k4zmu2a.spacecadetpinball
+          - com.github.mtkennerly.ludusavi
+          - com.hunterwittenborn.Celeste
+          - com.obsproject.Studio
+          - com.usebottles.bottles
+          - io.mpv.Mpv
+          - me.proton.Mail
+          - org.fcitx.Fcitx5
+          - org.fcitx.Fcitx5.Addon.McBopomofo
+          - org.keepassxc.KeePassXC
+          - org.libreoffice.LibreOffice
+          - org.mozilla.Thunderbird
+          - org.prismlauncher.PrismLauncher
+          - org.sonic3air.Sonic3AIR
+          - org.freedesktop.Platform.VulkanLayer.gamescope//24.08
+          - org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08
+          - org.freedesktop.Platform.VulkanLayer.MangoHud//24.08
+          - org.freedesktop.Platform.VulkanLayer.OBSVkCapture//24.08
       - scope: user # Also add Flathub user repo, but no user packages
+
+  - type: bling
+    install:
+      - 1password
+
+  - type: script
+    snippets:
+      - "install -d -m 0755 /nix /snap"
+
+  - type: kargs
+    arch: x86_64  # only inject kernel arguments to these specific OS architectures
+    kargs:  # Add kargs about virtualization.
+      - kvm.ignore_msrs=1
+      - kvm.report_ignored_msrs=0
+
+  - type: systemd
+    system:
+      enabled:
+        - sshd.service
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
