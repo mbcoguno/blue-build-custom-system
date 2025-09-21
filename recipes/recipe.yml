@@ -34,6 +34,14 @@ modules:
       # Use full kernel preemption.
       - preempt=full
 
+  - type: fonts
+    fonts:
+      nerd-fonts:
+        - JetBrainsMono
+        - Hasklig
+        - CascadiaCode
+        - ZedMono
+
   - type: bling
     install:
       - 1password
