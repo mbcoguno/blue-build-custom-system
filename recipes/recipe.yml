@@ -50,7 +50,6 @@ modules:
           - com.github.mtkennerly.ludusavi
           - com.hunterwittenborn.Celeste
           - com.obsproject.Studio
-          - com.usebottles.bottles
           - io.mpv.Mpv
           - me.proton.Mail
           - org.fcitx.Fcitx5
@@ -65,7 +64,11 @@ modules:
           # - org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08
           # - org.freedesktop.Platform.VulkanLayer.MangoHud//24.08
           # - org.freedesktop.Platform.VulkanLayer.OBSVkCapture//24.08
-      - scope: user # Also add Flathub user repo, but no user packages
+      - notify: false
+        scope: user # Also add Flathub user repo.
+        install:
+          - com.usebottles.bottles
+          - com.heroicgameslauncher.hgl
 
   - type: bling
     install:
