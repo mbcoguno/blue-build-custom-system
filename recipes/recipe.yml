@@ -17,25 +17,22 @@ modules:
       - source: system
         destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
 
-  # https://blue-build.org/blog/dnf-module/
-  - type: dnf
-    # https://github.com/boredsquirrel/browserscript-fedora-atomic
-    repos:
-      files:
-        - vivaldi-x86_64.repo
-        - https://openrazer.github.io/hardware:razer.repo
-      copr:
-        - secureblue/bubblejail
-      keys:
-        - https://repo.vivaldi.com/archive/linux_signing_key.pub
-        - https://download.opensuse.org/repositories/hardware:/razer/Fedora_%OS_VERSION%/repodata/repomd.xml.key
+  - type: script
+    snippets:
+      - "install -d -m 0755 /nix /snap"
+
+  - type: kargs
+    arch: x86_64  # only inject kernel arguments to these specific OS architectures
+    kargs:
+      # Help KVM using VFIO on Windows.
+      - kvm.ignore_msrs=1
+      - kvm.report_ignored_msrs=0
+      # Disable USB autosuspend on Linux desktop using sleep.
+      - usbcore.autosuspend=-1
+
+  - type: bling
     install:
-      packages:
-        - vivaldi-stable
-        - bubblejail
-        - openrazer-daemon
-    optfix:
-      - vivaldi
+      - 1password
 
   - type: default-flatpaks
     configurations:
@@ -70,22 +67,25 @@ modules:
           - com.usebottles.bottles
           - com.heroicgameslauncher.hgl
 
-  - type: bling
+  # https://blue-build.org/blog/dnf-module/
+  - type: dnf
+    # https://github.com/boredsquirrel/browserscript-fedora-atomic
+    repos:
+      files:
+        - vivaldi-x86_64.repo
+        - https://openrazer.github.io/hardware:razer.repo
+      copr:
+        - secureblue/bubblejail
+      keys:
+        - https://repo.vivaldi.com/archive/linux_signing_key.pub
+        - https://download.opensuse.org/repositories/hardware:/razer/Fedora_%OS_VERSION%/repodata/repomd.xml.key
     install:
-      - 1password
-
-  - type: script
-    snippets:
-      - "install -d -m 0755 /nix /snap"
-
-  - type: kargs
-    arch: x86_64  # only inject kernel arguments to these specific OS architectures
-    kargs:
-      # Help KVM using VFIO on Windows.
-      - kvm.ignore_msrs=1
-      - kvm.report_ignored_msrs=0
-      # Disable USB autosuspend on Linux desktop using sleep.
-      - usbcore.autosuspend=-1
+      packages:
+        - vivaldi-stable
+        - bubblejail
+        - openrazer-daemon
+    optfix:
+      - vivaldi
 
   - type: systemd
     system:
