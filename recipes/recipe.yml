@@ -21,6 +21,8 @@ modules:
     snippets:
       - "install -d -m 0755 /nix /snap"
 
+  # Not apply after update. Manual add: `rpm-ostree kargs --append-if-missing=KEY=VALUE`
+  # https://www.answeroverflow.com/m/1404867444320895136
   - type: kargs
     arch: x86_64  # only inject kernel arguments to these specific OS architectures
     kargs:
@@ -29,6 +31,8 @@ modules:
       - kvm.report_ignored_msrs=0
       # Disable USB autosuspend on Linux desktop using sleep.
       - usbcore.autosuspend=-1
+      # Use full kernel preemption.
+      - preempt=full
 
   - type: bling
     install:
