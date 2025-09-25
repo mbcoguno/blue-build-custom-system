@@ -80,9 +80,12 @@ modules:
 
   - type: kargs
     arch: x86_64  # only inject kernel arguments to these specific OS architectures
-    kargs:  # Add kargs about virtualization.
+    kargs:
+      # Help KVM using VFIO on Windows.
       - kvm.ignore_msrs=1
       - kvm.report_ignored_msrs=0
+      # Disable USB autosuspend on Linux desktop using sleep.
+      - usbcore.autosuspend=-1
 
   - type: systemd
     system:
