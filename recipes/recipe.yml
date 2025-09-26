@@ -86,16 +86,21 @@ modules:
       files:
         - vivaldi-x86_64.repo
         - https://openrazer.github.io/hardware:razer.repo
-      copr:
-        - secureblue/bubblejail
       keys:
         - https://repo.vivaldi.com/archive/linux_signing_key.pub
         - https://download.opensuse.org/repositories/hardware:/razer/Fedora_%OS_VERSION%/repodata/repomd.xml.key
+      copr:
+        - secureblue/bubblejail
+        - apicalshark/fcitx5-mcbopomofo
     install:
       packages:
         - vivaldi-stable
         - bubblejail
         - openrazer-daemon
+        # https://github.com/ublue-os/bazzite/issues/2996
+        - fcitx5-table-extra
+        - fcitx5-mcbopomofo
+        - fcitx5-chewing
     optfix:
       - vivaldi
 
