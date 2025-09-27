@@ -61,13 +61,14 @@ modules:
           - com.obsproject.Studio
           - io.mpv.Mpv
           - me.proton.Mail
-          - org.fcitx.Fcitx5
-          - org.fcitx.Fcitx5.Addon.McBopomofo
           - org.keepassxc.KeePassXC
           - org.libreoffice.LibreOffice
           - org.mozilla.Thunderbird
           - org.prismlauncher.PrismLauncher
           - org.sonic3air.Sonic3AIR
+          # Wishlist:
+          # https://github.com/flathub/flathub/pull/6775
+          #
           # Branches not support in v2 because it use `flathub.org/api/v2/stats/` API.
           # - org.freedesktop.Platform.VulkanLayer.gamescope//24.08
           # - org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08
