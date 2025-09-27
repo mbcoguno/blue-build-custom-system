@@ -109,5 +109,10 @@ modules:
     system:
       enabled:
         - sshd.service
+        - tailscaled.service
+        # - force-wol.service
+    user:
+      enabled:
+        - sunshine.service
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
