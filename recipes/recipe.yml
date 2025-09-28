@@ -22,10 +22,7 @@ modules:
       - "install -d -m 0755 /nix /snap"
 
   # bluebuild's akmods module support only common and nvidia(-open) groups right now.
-  # - type: akmods
-  #   base: bazzite
-  #   install:
-  #     - zfs
+  # zfs kernel module only support CoreOS, Centos or Fedora LTS Kernel.
 
   # Not apply after update. Manual add: `rpm-ostree kargs --append-if-missing=KEY=VALUE`
   # https://www.answeroverflow.com/m/1404867444320895136
