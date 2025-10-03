@@ -106,8 +106,6 @@ modules:
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
         - fcitx5-chewing
-    optfix:
-      - vivaldi
 
   - type: systemd
     system:
