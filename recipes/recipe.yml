@@ -114,7 +114,7 @@ modules:
       enabled:
         - sshd.service
         - tailscaled.service
-        # - force-wol.service
+        # - force-wol.service  # Required router support it.
     user:
       enabled:
         - sunshine.service
