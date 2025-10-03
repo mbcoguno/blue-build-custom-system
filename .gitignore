@@ -4,3 +4,4 @@ cosign.private
 deploy.iso
 deploy.iso-CHECKSUM
 generate-iso/
+/.bluebuild-scripts_*
