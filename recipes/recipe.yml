@@ -97,6 +97,7 @@ modules:
       copr:
         - secureblue/bubblejail
         - apicalshark/fcitx5-mcbopomofo
+      nonfree: negativo17  # rar.
     install:
       packages:
         - vivaldi-stable
@@ -106,6 +107,7 @@ modules:
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
         - fcitx5-chewing
+        - rar
 
   - type: systemd
     system:
