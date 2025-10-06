@@ -72,6 +72,7 @@ modules:
           - org.sonic3air.Sonic3AIR
           # Wishlist:
           # https://github.com/flathub/flathub/pull/6775
+          # https://github.com/flathub/flathub/pull/6978
           #
           # Branches not support in v2 because it use `flathub.org/api/v2/stats/` API.
           # - org.freedesktop.Platform.VulkanLayer.gamescope//24.08
