@@ -63,6 +63,7 @@ modules:
           - com.github.mtkennerly.ludusavi
           - com.hunterwittenborn.Celeste
           - com.obsproject.Studio
+          - com.ulduzsoft.Birdtray
           - io.mpv.Mpv
           - me.proton.Mail
           - org.keepassxc.KeePassXC
