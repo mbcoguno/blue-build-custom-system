@@ -110,6 +110,7 @@ modules:
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
         - fcitx5-chewing
+        - kata-containers
 
   - type: systemd
     system:
