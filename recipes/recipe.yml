@@ -118,6 +118,7 @@ modules:
         - sshd.service
         - tailscaled.service
         # - force-wol.service  # Required router support it.
+        # - kata-osbuilder-generate.service
     user:
       enabled:
         - sunshine.service
