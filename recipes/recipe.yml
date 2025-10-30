@@ -103,7 +103,7 @@ modules:
       packages:
         - vivaldi-stable
         - bubblejail
-        - openrazer-daemon
+        # - openrazer-daemon  # References wrong kernel.
         # https://github.com/ublue-os/bazzite/issues/2996
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
