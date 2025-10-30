@@ -105,6 +105,8 @@ modules:
         - wallpaper-engine-kde-plugin
         - vivaldi-stable
         - bubblejail
+        # https://openrazer.github.io/#fedora
+        - kernel-devel
         - openrazer-daemon
         # https://github.com/ublue-os/bazzite/issues/2996
         - fcitx5-table-extra
