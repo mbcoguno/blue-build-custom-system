@@ -97,10 +97,12 @@ modules:
         - https://repo.vivaldi.com/archive/linux_signing_key.pub
         - https://download.opensuse.org/repositories/hardware:/razer/Fedora_%OS_VERSION%/repodata/repomd.xml.key
       copr:
+        - bazzite-org/bazzite
         - secureblue/bubblejail
         - apicalshark/fcitx5-mcbopomofo
     install:
       packages:
+        - wallpaper-engine-kde-plugin
         - vivaldi-stable
         - bubblejail
         # - openrazer-daemon  # References wrong kernel.
