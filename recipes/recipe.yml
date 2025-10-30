@@ -105,7 +105,7 @@ modules:
         - wallpaper-engine-kde-plugin
         - vivaldi-stable
         - bubblejail
-        # - openrazer-daemon  # References wrong kernel.
+        - openrazer-daemon
         # https://github.com/ublue-os/bazzite/issues/2996
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
