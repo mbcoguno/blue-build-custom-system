@@ -110,7 +110,6 @@ modules:
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
         - fcitx5-chewing
-        - nut
 
   - type: systemd
     system:
