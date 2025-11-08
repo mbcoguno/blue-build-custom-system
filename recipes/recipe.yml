@@ -49,6 +49,9 @@ modules:
     install:
       - 1password
 
+  - type: kata-containers
+    source: local
+
   # After setup, it can diable automatic setup via `bluebuild-flatpak-manager disable all`.
   - type: default-flatpaks
     configurations:
