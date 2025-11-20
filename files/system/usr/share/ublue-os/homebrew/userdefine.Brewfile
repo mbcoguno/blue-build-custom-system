@@ -1,6 +1,7 @@
 # vim: set filetype=ruby:
 brew "git-delta"
 brew "mise"  # Usage: `mosh --server="/usr/bin/systemd-run --scope --user /var/home/linuxbrew/.linuxbrew/bin/mosh-server" -- bazzite@<bazzipt-ip>`
+brew "fnox"
 brew "mosh"
 brew "syncthing"
 brew "neovim"
