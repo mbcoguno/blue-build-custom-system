@@ -121,4 +121,9 @@ modules:
       enabled:
         - sunshine.service
 
+  # Remove redundant /rpms/ folder.
+  - type: script
+    snippets:
+      - "rm -rf /rpms/"
+
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
