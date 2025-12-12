@@ -14,3 +14,6 @@ brew "borgbackup"  # Use 2.0 for encryption.
 brew "borgmatic"
 brew "gpatch"
 brew "nut"
+
+vscode "ms-ceintl.vscode-language-pack-zh-hant"
+vscode "hverlin.mise-vscode"
