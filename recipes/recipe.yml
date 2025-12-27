@@ -57,7 +57,6 @@ modules:
           - com.discordapp.Discord
           - com.github.k4zmu2a.spacecadetpinball
           - com.github.mtkennerly.ludusavi
-          - com.hunterwittenborn.Celeste
           - com.obsproject.Studio
           - com.ulduzsoft.Birdtray
           - io.mpv.Mpv
