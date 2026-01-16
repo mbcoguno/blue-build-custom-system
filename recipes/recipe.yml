@@ -61,6 +61,7 @@ modules:
           - com.ulduzsoft.Birdtray
           - io.mpv.Mpv
           - me.proton.Mail
+          - org.freac.freac
           - org.keepassxc.KeePassXC
           - org.libreoffice.LibreOffice
           - org.mozilla.Thunderbird
