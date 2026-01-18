@@ -99,6 +99,7 @@ modules:
     install:
       packages:
         - wallpaper-engine-kde-plugin
+        - whipper
         - vivaldi-stable
         - bubblejail
         - openrazer-daemon
