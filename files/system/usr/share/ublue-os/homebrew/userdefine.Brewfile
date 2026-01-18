@@ -1,8 +1,8 @@
 # vim: set filetype=ruby:
 brew "git-delta"
-brew "mise"  # Usage: `mosh --server="/usr/bin/systemd-run --scope --user /var/home/linuxbrew/.linuxbrew/bin/mosh-server" -- bazzite@<bazzipt-ip>`
+brew "mise"
 brew "fnox"
-brew "mosh"
+brew "mosh"  # Usage: `mosh --server="/usr/bin/systemd-run --scope --user /var/home/linuxbrew/.linuxbrew/bin/mosh-server" -- bazzite@<bazzite-ip>`
 brew "syncthing"
 brew "neovim"
 brew "sops"
@@ -14,6 +14,9 @@ brew "borgbackup"  # Use 2.0 for encryption.
 brew "borgmatic"
 brew "gpatch"
 brew "nut"
+brew "flac"
+brew "fdk-aac"
 
 vscode "ms-ceintl.vscode-language-pack-zh-hant"
 vscode "hverlin.mise-vscode"
+# vscode "ms-vscode-remote.remote-containers"
