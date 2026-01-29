@@ -90,7 +90,7 @@ modules:
         - vivaldi-x86_64.repo
         - https://openrazer.github.io/hardware:razer.repo
       keys:
-        - https://repo.vivaldi.com/archive/linux_signing_key.pub
+        - https://repo.vivaldi.com/stable/linux_signing_key.pub
         - https://download.opensuse.org/repositories/hardware:/razer/Fedora_%OS_VERSION%/repodata/repomd.xml.key
       copr:
         - bazzite-org/bazzite
