@@ -99,10 +99,10 @@ modules:
     install:
       packages:
         - wallpaper-engine-kde-plugin
-        - whipper
         - vivaldi-stable
         - bubblejail
         - openrazer-daemon
+        - whipper
         # https://github.com/ublue-os/bazzite/issues/2996
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
