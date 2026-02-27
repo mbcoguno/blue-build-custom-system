@@ -76,18 +76,26 @@ jobs:
           HASH=$(echo "$METADATA" | sha256sum | cut -d' ' -f1)
           echo "hash=$HASH" >> "$GITHUB_OUTPUT"
 
+      - name: Check 1Password repo metadata
+        id: onepassword
+        run: |
+          REVISION=$(curl -sfL "https://downloads.1password.com/linux/rpm/stable/x86_64/repodata/repomd.xml" \
+            | grep -o '<revision>[^<]*</revision>' || true)
+          HASH=$(echo "$REVISION" | sha256sum | cut -d' ' -f1)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
       - name: Restore cached state
         uses: actions/cache/restore@v4
         with:
           path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.rpm-repos.outputs.hash }}
+          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.rpm-repos.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
           restore-keys: |
             upstream-state-${{ steps.recipe.outputs.image_version }}-
 
       - name: Compare with cached state
         id: compare
         run: |
-          CURRENT="${{ steps.upstream.outputs.digest }}:${{ steps.rpm-repos.outputs.hash }}"
+          CURRENT="${{ steps.upstream.outputs.digest }}:${{ steps.rpm-repos.outputs.hash }}:${{ steps.onepassword.outputs.hash }}"
           PREVIOUS=""
           if [ -f upstream-state.txt ]; then
             PREVIOUS=$(cat upstream-state.txt)
@@ -106,7 +114,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.rpm-repos.outputs.hash }}
+          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.rpm-repos.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
 
   bluebuild:
     name: Build Custom Image
