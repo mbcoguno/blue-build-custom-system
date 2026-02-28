@@ -26,7 +26,7 @@ jobs:
       has_update: ${{ steps.compare.outputs.has_update }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get image info from recipe
         id: recipe
@@ -93,7 +93,7 @@ jobs:
           echo "hash=$HASH" >> "$GITHUB_OUTPUT"
 
       - name: Restore cached state
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: upstream-state.txt
           key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: Save state to cache
         if: steps.compare.outputs.has_update == 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: upstream-state.txt
           key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
