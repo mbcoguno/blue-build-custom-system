@@ -15,6 +15,7 @@ brew "borgmatic"
 brew "gpatch"
 brew "nut"
 brew "fdk-aac"
+brew "fence"
 
 vscode "ms-ceintl.vscode-language-pack-zh-hant"
 vscode "hverlin.mise-vscode"
