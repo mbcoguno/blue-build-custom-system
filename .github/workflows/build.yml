@@ -46,8 +46,8 @@ jobs:
             | jq -r '.Digest')
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
 
-      - name: Check external RPM repo metadata
-        id: rpm-repos
+      - name: Check DNF package updates
+        id: dnf-pkgs
         run: |
           FEDORA_VER="${{ steps.recipe.outputs.fedora_version }}"
           METADATA=""
@@ -73,15 +73,7 @@ jobs:
             fi
           done < <(yq '.modules[] | select(.type == "dnf") | .repos.files[]' recipes/recipe.yml)
 
-          HASH=$(echo "$METADATA" | sha256sum | cut -d' ' -f1)
-          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
-
-      - name: Check Fedora package updates via Bodhi
-        id: fedora-pkgs
-        run: |
-          FEDORA_VER="${{ steps.recipe.outputs.fedora_version }}"
-          METADATA=""
-
+          # Check Fedora official packages via Bodhi
           while IFS= read -r PKG; do
             UPDATE_ID=$(curl -sfL \
               "https://bodhi.fedoraproject.org/updates/?packages=${PKG}&releases=F${FEDORA_VER}&status=stable&rows_per_page=1&content_type=rpm" \
@@ -104,14 +96,14 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.rpm-repos.outputs.hash }}-${{ steps.fedora-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
+          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
           restore-keys: |
             upstream-state-${{ steps.recipe.outputs.image_version }}-
 
       - name: Compare with cached state
         id: compare
         run: |
-          CURRENT="${{ steps.upstream.outputs.digest }}:${{ steps.rpm-repos.outputs.hash }}:${{ steps.fedora-pkgs.outputs.hash }}:${{ steps.onepassword.outputs.hash }}"
+          CURRENT="${{ steps.upstream.outputs.digest }}:${{ steps.dnf-pkgs.outputs.hash }}:${{ steps.onepassword.outputs.hash }}"
           PREVIOUS=""
           if [ -f upstream-state.txt ]; then
             PREVIOUS=$(cat upstream-state.txt)
@@ -130,7 +122,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.rpm-repos.outputs.hash }}-${{ steps.fedora-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
+          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
 
   bluebuild:
     name: Build Custom Image
