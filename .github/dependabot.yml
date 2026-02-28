@@ -4,3 +4,5 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    # Do not create pull requests.
+    # open-pull-requests-limit: 0
