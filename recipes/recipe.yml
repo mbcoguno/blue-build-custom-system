@@ -114,9 +114,10 @@ modules:
         - sshd.service
         - tailscaled.service
         # - force-wol.service  # Required router support it.
-    user:
-      enabled:
-        - sunshine.service
+    # user:
+    #   enabled:
+    #     # bazzite remove sunshine on unstable-43.20260326.1
+    #     - sunshine.service
 
   - type: script
     snippets:
