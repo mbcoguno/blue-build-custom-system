@@ -53,7 +53,6 @@ modules:
         scope: system
         # If no repo information is specified, Flathub will be used by default
         install: # system flatpaks we want all users to have and not remove
-          - app.polychromatic.controller
           - com.bitwarden.desktop
           - com.discordapp.Discord
           - com.github.k4zmu2a.spacecadetpinball
@@ -90,10 +89,8 @@ modules:
     repos:
       files:
         - vivaldi-x86_64.repo
-        - https://openrazer.github.io/hardware:razer.repo
       keys:
         - https://repo.vivaldi.com/stable/linux_signing_key.pub
-        - https://download.opensuse.org/repositories/hardware:/razer/Fedora_%OS_VERSION%/repodata/repomd.xml.key
       copr:
         - bazzite-org/bazzite
         - secureblue/bubblejail
@@ -103,7 +100,6 @@ modules:
         - wallpaper-engine-kde-plugin
         - vivaldi-stable
         - bubblejail
-        - openrazer-daemon
         - whipper
         # https://github.com/ublue-os/bazzite/issues/2996
         - fcitx5-table-extra
