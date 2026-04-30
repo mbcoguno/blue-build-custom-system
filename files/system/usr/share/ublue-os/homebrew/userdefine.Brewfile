@@ -10,12 +10,14 @@ brew "fail2ban"
 # brew "yt-dlp"
 brew "aria2"
 brew "uv"
-brew "borgbackup"  # Use 2.0 for encryption.
-brew "borgmatic"
 brew "gpatch"
 brew "nut"
 brew "fdk-aac"
 brew "nono"
+
+# brew "LizardByte/homebrew/sunshine"  # Use `ujust setup-subshine`.
+# cask "ublue-os/tap/1password-gui-linux"
+# cask "1password-cli"
 
 vscode "ms-ceintl.vscode-language-pack-zh-hant"
 vscode "hverlin.mise-vscode"
