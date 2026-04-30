@@ -41,6 +41,7 @@ modules:
         - CascadiaCode
         - ZedMono
 
+  # TODO: Use "ublue-os/tap/1password-gui-linux" and "1password-cli" casks instead.
   - type: bling
     install:
       - 1password
@@ -70,12 +71,13 @@ modules:
           # Wishlist:
           # https://github.com/flathub/flathub/pull/6775
           # https://github.com/flathub/flathub/pull/6978
+          # https://github.com/flathub/flathub/pull/8359
           #
           # Branches not support in v2 because it use `flathub.org/api/v2/stats/` API.
-          # - org.freedesktop.Platform.VulkanLayer.gamescope//24.08
-          # - org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08
-          # - org.freedesktop.Platform.VulkanLayer.MangoHud//24.08
-          # - org.freedesktop.Platform.VulkanLayer.OBSVkCapture//24.08
+          # - org.freedesktop.Platform.VulkanLayer.gamescope//25.08
+          # - org.freedesktop.Platform.VulkanLayer.vkBasalt//25.08
+          # - org.freedesktop.Platform.VulkanLayer.MangoHud//25.08
+          # - org.freedesktop.Platform.VulkanLayer.OBSVkCapture//25.08
       - notify: false
         scope: user # Also add Flathub user repo.
         install:
@@ -116,7 +118,7 @@ modules:
         # - force-wol.service  # Required router support it.
     # user:
     #   enabled:
-    #     # bazzite remove sunshine on unstable-43.20260326.1
+    #     # bazzite remove sunshine on 44. Use `ujust setup-sunshine` instead.
     #     - sunshine.service
 
   - type: script
