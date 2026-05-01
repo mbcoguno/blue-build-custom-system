@@ -155,5 +155,5 @@ jobs:
           # enabled by default, disable if your image is small and you want faster builds
           maximize_build_space: true
           # need more runner space.
-          build_chunked_oci: false
-          rechunk_clear_plan: false
+          build_chunked_oci: true
+          rechunk_clear_plan: true
