@@ -16,6 +16,10 @@ brew "fdk-aac"
 brew "nono"
 
 # brew "LizardByte/homebrew/sunshine"  # Use `ujust setup-subshine`.
+# $ getent group onepassword
+# onepassword:x:1500:
+# $ getent group onepassword-cli
+# onepassword-cli:x:1600:
 # cask "ublue-os/tap/1password-gui-linux"
 # cask "1password-cli"
 
