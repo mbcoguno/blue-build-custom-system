@@ -93,7 +93,7 @@ modules:
         - https://repo.vivaldi.com/stable/linux_signing_key.pub
       copr:
         - bazzite-org/bazzite
-        - secureblue/bubblejail
+        - secureblue/packages
         - apicalshark/fcitx5-mcbopomofo
     install:
       packages:
