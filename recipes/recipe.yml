@@ -41,11 +41,6 @@ modules:
         - CascadiaCode
         - ZedMono
 
-  # TODO: Use "ublue-os/tap/1password-gui-linux" and "1password-cli" casks instead.
-  - type: bling
-    install:
-      - 1password
-
   # After setup, it can diable automatic setup via `bluebuild-flatpak-manager disable all`.
   - type: default-flatpaks
     configurations:
