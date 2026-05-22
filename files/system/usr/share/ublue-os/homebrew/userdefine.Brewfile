@@ -16,11 +16,7 @@ brew "fdk-aac"
 brew "nono"
 
 # brew "LizardByte/homebrew/sunshine"  # Use `ujust setup-subshine`.
-# $ getent group onepassword
-# onepassword:x:1500:
-# $ getent group onepassword-cli
-# onepassword-cli:x:1600:
-# cask "ublue-os/tap/1password-gui-linux"
+# cask "ublue-os/tap/1password-gui-linux"  # Setup GID with `ujust setup-onepassword-groupid`
 # cask "1password-cli"
 
 vscode "ms-ceintl.vscode-language-pack-zh-hant"
