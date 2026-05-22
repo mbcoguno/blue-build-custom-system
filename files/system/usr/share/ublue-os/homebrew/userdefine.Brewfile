@@ -14,10 +14,17 @@ brew "gpatch"
 brew "nut"
 brew "fdk-aac"
 brew "nono"
+brew "rclone"
+brew "restic"
 
 # brew "LizardByte/homebrew/sunshine"  # Use `ujust setup-subshine`.
 # cask "ublue-os/tap/1password-gui-linux"  # Setup GID with `ujust setup-onepassword-groupid`
 # cask "1password-cli"
+# brew "docker-engine"
+# brew "docker"
+# brew "docker-compose"
+# brew "docker-buildx"
+# cask "ublue-os/experimental-tap/visual-studio-code-linux"
 
 vscode "ms-ceintl.vscode-language-pack-zh-hant"
 vscode "hverlin.mise-vscode"
