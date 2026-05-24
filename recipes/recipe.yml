@@ -111,6 +111,10 @@ modules:
         - libvirt
         - virt-manager
         - edk2-ovmf
+        # vTPM backend for Windows 11 guests; also provides the `tss` user that
+        # the swtpm-localca.conf tmpfiles entry chowns to.
+        - swtpm
+        - swtpm-tools
 
   - type: systemd
     system:
@@ -118,6 +122,11 @@ modules:
         - sshd.service
         - tailscaled.service
         # - force-wol.service  # Required router support it.
+        # Oneshot from the base image: on first boot enables libvirtd and runs
+        # restorecon on /var/lib|log/libvirt, then disables itself. This is what
+        # `ujust setup-virtualization` would enable; we do it at build time since
+        # we ship the native QEMU stack via the dnf module above.
+        - bazzite-libvirtd-setup.service
     # user:
     #   enabled:
     #     # bazzite remove sunshine on 44. Use `ujust setup-sunshine` instead.
