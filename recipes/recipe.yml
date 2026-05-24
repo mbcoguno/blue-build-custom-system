@@ -111,6 +111,7 @@ modules:
         - libvirt
         - virt-manager
         - edk2-ovmf
+        - guestfs-tools
         # vTPM backend for Windows 11 guests; also provides the `tss` user that
         # the swtpm-localca.conf tmpfiles entry chowns to.
         - swtpm
