@@ -1,9 +1,9 @@
 setup-onepassword-groupid:
-  sudo groupadd --gid 1500 onepassword
-  sudo groupadd --gid 1600 onepassword-cli
+  getent group onepassword > /dev/null || sudo groupadd --gid 1500 onepassword
+  getent group onepassword-cli > /dev/null || sudo groupadd --gid 1600 onepassword-cli
   # sudo groupadd --system onepassword-mcp  # my system is 957.
 setup-docker-groupid:
-  sudo groupadd --gid 964 docker
+  getent group docker > /dev/null || sudo groupadd --gid 964 docker
   sudo usermod --append --groups docker "$USER"
 setup-libvirt-groupid:
   getent group libvirt > /dev/null || sudo groupadd --gid 961 libvirt
