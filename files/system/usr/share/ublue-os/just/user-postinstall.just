@@ -1,7 +1,7 @@
 setup-onepassword-groupid:
   getent group onepassword > /dev/null || sudo groupadd --gid 1500 onepassword
   getent group onepassword-cli > /dev/null || sudo groupadd --gid 1600 onepassword-cli
-  # sudo groupadd --system onepassword-mcp  # my system is 957.
+  getent group onepassword-mcp > /dev/null || sudo groupadd --system onepassword-mcp
 setup-docker-groupid:
   # docker comes from Homebrew (no /usr/lib/group entry), so create the group
   # with a dynamic system GID rather than a hardcoded one. A fixed GID picked
