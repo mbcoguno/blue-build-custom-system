@@ -25,6 +25,7 @@ brew "docker"
 brew "docker-compose"
 brew "docker-buildx"
 cask "ublue-os/experimental-tap/visual-studio-code-linux"
+brew "zsh"
 
 vscode "ms-ceintl.vscode-language-pack-zh-hant"
 vscode "hverlin.mise-vscode"
