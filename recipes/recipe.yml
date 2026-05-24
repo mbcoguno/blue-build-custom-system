@@ -116,6 +116,23 @@ modules:
         - swtpm
         - swtpm-tools
 
+  # ROCM (AMD GPU compute). Bazzite 44 moved this to the -dx variant; re-add as
+  # RPMs (mirrors ublue-os/bazzite-dx#164) with weak deps off to avoid pulling
+  # the full ROCM stack, dropping the conflicting Mesa OpenCL ICD first. Kept as
+  # a separate dnf module so install-weak-deps:false doesn't touch the packages
+  # above; the dnf module runs remove before install, so the swap order is safe.
+  - type: dnf
+    remove:
+      packages:
+        - mesa-libOpenCL
+    install:
+      install-weak-deps: false
+      packages:
+        - rocm-hip
+        - rocm-opencl
+        - rocm-clinfo
+        - rocm-smi
+
   - type: systemd
     system:
       enabled:
