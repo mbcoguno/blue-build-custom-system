@@ -25,7 +25,7 @@ modules:
   - type: kargs
     arch: x86_64  # only inject kernel arguments to these specific OS architectures
     kargs:
-      # Help KVM using VFIO on Windows.
+      # Help Windows guests on KVM (ignore unimplemented MSRs).
       - kvm.ignore_msrs=1
       - kvm.report_ignored_msrs=0
       # Disable USB autosuspend on Linux desktop using sleep.
@@ -100,6 +100,17 @@ modules:
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
         - fcitx5-chewing
+        # Native QEMU stack. Bazzite 44 moved these to the -dx variant and ships
+        # only a flatpak virt-manager on the base image. Re-add as RPMs (mirrors
+        # ublue-os/bazzite-dx#164) for a system libvirtd that virt-manager talks to
+        # directly, plus USB passthrough and bridge networking the flatpak can't do.
+        # Do NOT preinstall the virt-manager flatpak: it makes
+        # `ujust setup-virtualization` skip swtpm/libvirtd setup.
+        - qemu
+        - qemu-kvm
+        - libvirt
+        - virt-manager
+        - edk2-ovmf
 
   - type: systemd
     system:
