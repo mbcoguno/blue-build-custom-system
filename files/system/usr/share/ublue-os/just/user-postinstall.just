@@ -4,5 +4,9 @@ setup-onepassword-groupid:
   # sudo groupadd --system onepassword-mcp  # my system is 957.
 setup-docker-groupid:
   sudo groupadd --gid 964 docker
+  sudo usermod --append --groups docker "$USER"
+setup-libvirt-groupid:
+  getent group libvirt > /dev/null || sudo groupadd --gid 961 libvirt
+  sudo usermod --append --groups libvirt "$USER"
 install-user-define-homebrew:
   brew bundle install --file /usr/share/ublue-os/homebrew/userdefine.Brewfile
