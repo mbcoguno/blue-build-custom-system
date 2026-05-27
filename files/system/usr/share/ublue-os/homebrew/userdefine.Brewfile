@@ -21,6 +21,8 @@ brew "LizardByte/homebrew/sunshine"  # Use `ujust setup-subshine`.
 cask "ublue-os/tap/1password-gui-linux"  # Setup GID with `ujust setup-onepassword-groupid`
 cask "1password-cli"
 brew "docker-engine"
+brew "rootlesskit"
+brew "slirp4netns"
 brew "docker"
 brew "docker-compose"
 brew "docker-buildx"
