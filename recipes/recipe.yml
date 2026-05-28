@@ -64,7 +64,7 @@ modules:
           - org.freac.freac
           - org.keepassxc.KeePassXC
           - org.libreoffice.LibreOffice
-          - org.mozilla.Thunderbird
+          - org.mozilla.thunderbird_esr
           - org.prismlauncher.PrismLauncher
           - org.sonic3air.Sonic3AIR
           # Wishlist:
