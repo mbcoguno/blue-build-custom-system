@@ -101,6 +101,7 @@ modules:
         - vivaldi-stable
         - bubblejail
         - whipper
+        - et
         # https://github.com/ublue-os/bazzite/issues/2996
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
