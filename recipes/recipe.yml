@@ -128,6 +128,6 @@ modules:
       # Remove redundant /rpms/ folder on latest bazzite.
       # - "rm -rf /rpms/"
       # https://github.com/ublue-os/bazzite-dx/issues/221
-      - "truncate --size 0 /usr/etc/environment.d/99-ogui-logs.conf"
+      - "truncate --size 0 /etc/environment.d/99-ogui-logs.conf"
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
