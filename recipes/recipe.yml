@@ -127,7 +127,7 @@ modules:
       # Create folders for multiplatform package managers.
       - "install -d -m 0755 /nix /snap"
       # Remove redundant /rpms/ folder on latest bazzite.
-      - "rm -rf /rpms/"
+      # - "rm -rf /rpms/"
       # https://github.com/ublue-os/bazzite-dx/issues/221
       - "truncate --size 0 /usr/etc/environment.d/99-ogui-logs.conf"
 
