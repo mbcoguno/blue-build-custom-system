@@ -104,7 +104,6 @@ modules:
         - whipper
         - et
         - timg
-        - xdelta
         # https://github.com/ublue-os/bazzite/issues/2996
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
