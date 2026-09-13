@@ -43,6 +43,8 @@ modules:
 
   # TODO: Use "ublue-os/tap/1password-gui-linux" and "1password-cli" casks instead.
   - type: bling
+    env:
+      ONEPASSWORD_RELEASE_CHANNEL: beta
     install:
       - 1password
 
