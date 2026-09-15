@@ -156,4 +156,4 @@ jobs:
           maximize_build_space: true
           # need more runner space.
           build_chunked_oci: true
-          rechunk_clear_plan: true
+          rechunk_clear_plan: false
