@@ -26,7 +26,7 @@ jobs:
       has_update: ${{ steps.compare.outputs.has_update }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Get image info from recipe
         id: recipe
@@ -93,7 +93,7 @@ jobs:
           echo "hash=$HASH" >> "$GITHUB_OUTPUT"
 
       - name: Restore cached state
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: upstream-state.txt
           key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: Save state to cache
         if: steps.compare.outputs.has_update == 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: upstream-state.txt
           key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
@@ -146,7 +146,7 @@ jobs:
     steps:
       # the build is fully handled by the reusable github action
       - name: Build Custom Image
-        uses: blue-build/github-action@v1.11
+        uses: blue-build/github-action@v1.13
         with:
           recipe: ${{ matrix.recipe }}
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
