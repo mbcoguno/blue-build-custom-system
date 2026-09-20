@@ -116,6 +116,12 @@ modules:
         # Official has split tunnels.
         - https://repo.protonvpn.com/fedora-44-stable/protonvpn-stable-release/protonvpn-stable-release-1.0.4-1.noarch.rpm
 
+  # Seprecate from Proton VPN meta package.
+  - type: dnf
+    install:
+      packages:
+        - proton-vpn-gnome-desktop
+
   - type: systemd
     system:
       enabled:
