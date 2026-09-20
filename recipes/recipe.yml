@@ -83,6 +83,7 @@ modules:
         install:
           - com.usebottles.bottles
           - com.heroicgameslauncher.hgl
+          - com.obsproject.Studio.Plugin.PipeWireAudioCapture
 
   # https://blue-build.org/blog/dnf-module/
   - type: dnf
