@@ -90,8 +90,6 @@ modules:
     repos:
       files:
         - vivaldi-x86_64.repo
-        # Official has split tunnels.
-        - https://repo.protonvpn.com/fedora-44-stable/protonvpn-stable-release/protonvpn-stable-release-1.0.4-1.noarch.rpm
       keys:
         - https://repo.vivaldi.com/stable/linux_signing_key.pub
       copr:
@@ -114,7 +112,8 @@ modules:
         - fcitx5-chewing
         - ghostty
         - wezterm
-        - proton-vpn-gnome-desktop
+        # Official has split tunnels.
+        - https://repo.protonvpn.com/fedora-44-stable/protonvpn-stable-release/protonvpn-stable-release-1.0.4-1.noarch.rpm
 
   - type: systemd
     system:
