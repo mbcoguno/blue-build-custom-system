@@ -113,6 +113,7 @@ modules:
         - fcitx5-chewing
         - ghostty
         - wezterm
+        - kitty
         # Official has split tunnels.
         - https://repo.protonvpn.com/fedora-44-stable/protonvpn-stable-release/protonvpn-stable-release-1.0.4-1.noarch.rpm
 
