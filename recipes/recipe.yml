@@ -90,8 +90,10 @@ modules:
     # https://github.com/boredsquirrel/browserscript-fedora-atomic
     repos:
       files:
+        - https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo
         - vivaldi-x86_64.repo
       keys:
+        - https://pkg.cloudflareclient.com/pubkey.gpg
         - https://repo.vivaldi.com/stable/linux_signing_key.pub
       copr:
         - bazzite-org/bazzite
@@ -102,6 +104,7 @@ modules:
     install:
       packages:
         - wallpaper-engine-kde-plugin
+        - cloudflare-warp
         - vivaldi-stable
         - bubblejail
         - whipper
