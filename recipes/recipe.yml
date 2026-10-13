@@ -58,7 +58,6 @@ modules:
           - com.github.k4zmu2a.spacecadetpinball
           - com.github.mtkennerly.ludusavi
           - com.obsproject.Studio
-          - com.ulduzsoft.Birdtray
           - io.mpv.Mpv
           - me.proton.Mail
           - org.freac.freac
