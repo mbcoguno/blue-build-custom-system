@@ -147,8 +147,6 @@ modules:
     snippets:
       # Create folders for multiplatform package managers.
       - "install -d -m 0755 /nix /snap"
-      # Remove redundant /ctx/ folder on latest bazzite.
-      - "rm -rf /ctx/"
       # Give non-RPM payloads their own chunkah components so a 1Password update
       # doesn't invalidate layers holding unchanged Nerd Fonts.
       # https://github.com/coreos/chunkah#customizing-the-layers
