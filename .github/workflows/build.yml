@@ -161,3 +161,5 @@ jobs:
           chunkah: true
           build_chunked_oci: false
           rechunk_clear_plan: true
+          # Also applies to chunkah despite the action's description; matches upstream Bazzite.
+          max_layers: 256
