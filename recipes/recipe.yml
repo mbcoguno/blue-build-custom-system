@@ -122,13 +122,14 @@ modules:
         - ghostty
         - wezterm
         - kitty
-        # Official has split tunnels.
-        - https://repo.protonvpn.com/fedora-45-stable/protonvpn-stable-release/protonvpn-stable-release-1.0.5-1.noarch.rpm
 
-  # Separate from Proton VPN meta package.
+  # Copy from Proton VPN meta package.
   - type: dnf
     env:
       SYSTEMD_OFFLINE: "1"
+    repos:
+      files:
+        - protonvpn-stable.repo
     install:
       packages:
         - proton-vpn-gnome-desktop
