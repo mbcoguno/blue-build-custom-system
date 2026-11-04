@@ -94,6 +94,7 @@ modules:
       keys:
         - https://pkg.cloudflareclient.com/pubkey.gpg
         - https://repo.vivaldi.com/stable/linux_signing_key.pub
+        - https://repo.protonvpn.com/fedora-45-stable/public_key.asc
       copr:
         - bazzite-org/bazzite
         - secureblue/packages
@@ -117,7 +118,7 @@ modules:
         - wezterm
         - kitty
         # Official has split tunnels.
-        - https://repo.protonvpn.com/fedora-44-stable/protonvpn-stable-release/protonvpn-stable-release-1.0.4-1.noarch.rpm
+        - https://repo.protonvpn.com/fedora-45-stable/protonvpn-stable-release/protonvpn-stable-release-1.0.5-1.noarch.rpm
 
   # Separate from Proton VPN meta package.
   - type: dnf
