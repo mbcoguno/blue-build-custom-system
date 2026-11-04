@@ -111,9 +111,13 @@ modules:
         - et
         - timg
         # https://github.com/ublue-os/bazzite/issues/2996
+        # https://github.com/ublue-os/bazzite/issues/6101
         - fcitx5-table-extra
         - fcitx5-mcbopomofo
         - fcitx5-chewing
+        - fcitx5-chinese-addons
+        # kcm-fcitx5 5.1.16-1.fc45 needs libPlasma.so.7, but F45 libplasma provides libPlasma.so.8.
+        # - kcm-fcitx5
         - ghostty
         - wezterm
         - kitty
