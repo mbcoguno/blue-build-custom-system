@@ -68,7 +68,7 @@ jobs:
               BASEURL=$(grep '^baseurl=' "files/dnf/$REPO_REF" | head -1 | cut -d= -f2-)
             fi
             if [ -n "$BASEURL" ]; then
-              BASEURL=$(echo "$BASEURL" | sed "s/\\\$releasever/$FEDORA_VER/g; s/%OS_VERSION%/$FEDORA_VER/g")
+              BASEURL=$(echo "$BASEURL" | sed "s/\\\$releasever/$FEDORA_VER/g; s/\\\$basearch/x86_64/g; s/%OS_VERSION%/$FEDORA_VER/g")
               METADATA+=$(curl -sfL "${BASEURL}/repodata/repomd.xml" | grep -o '<revision>[^<]*</revision>' || true)
             fi
           done < <(yq '.modules[] | select(.type == "dnf") | .repos.files[]' recipes/recipe.yml)

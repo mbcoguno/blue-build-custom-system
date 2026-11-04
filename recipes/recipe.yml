@@ -91,7 +91,7 @@ modules:
       # Waits until warp support latest distro.
       files:
         # - https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo
-        - vivaldi-x86_64.repo
+        - https://repo.vivaldi.com/stable/vivaldi-fedora.repo
       # keys:
       #   # - https://pkg.cloudflareclient.com/pubkey.gpg
       copr:
