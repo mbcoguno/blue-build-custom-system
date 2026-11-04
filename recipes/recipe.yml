@@ -88,11 +88,12 @@ modules:
   - type: dnf
     # https://github.com/boredsquirrel/browserscript-fedora-atomic
     repos:
+      # Waits until warp support latest distro.
       files:
-        - https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo
+        # - https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo
         - vivaldi-x86_64.repo
       keys:
-        - https://pkg.cloudflareclient.com/pubkey.gpg
+        # - https://pkg.cloudflareclient.com/pubkey.gpg
         - https://repo.vivaldi.com/stable/linux_signing_key.pub
         - https://repo.protonvpn.com/fedora-45-stable/public_key.asc
       copr:
@@ -104,7 +105,7 @@ modules:
     install:
       packages:
         - wallpaper-engine-kde-plugin
-        - cloudflare-warp
+        # - cloudflare-warp
         - vivaldi-stable
         - bubblejail
         - whipper
