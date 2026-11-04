@@ -154,6 +154,8 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           # enabled by default, disable if your image is small and you want faster builds
           maximize_build_space: true
+          # Push layers as zstd (BlueBuild CLI defaults to gzip), matching upstream Bazzite.
+          build_opts: --compression-format zstd
           # need more runner space.
           # Cannot set more than one of 'chunkah', 'build_chunked_oci', and 'rechunk' to true.
           chunkah: true
