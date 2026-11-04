@@ -149,5 +149,10 @@ modules:
       - "install -d -m 0755 /nix /snap"
       # Remove redundant /ctx/ folder on latest bazzite.
       - "rm -rf /ctx/"
+      # Give non-RPM payloads their own chunkah components so a 1Password update
+      # doesn't invalidate layers holding unchanged Nerd Fonts.
+      # https://github.com/coreos/chunkah#customizing-the-layers
+      - "setfattr -n user.component -v nerd-fonts /usr/share/fonts/nerd-fonts && setfattr -n user.update-interval -v quarterly /usr/share/fonts/nerd-fonts"
+      - "setfattr -n user.component -v 1password /usr/lib/opt/1Password && setfattr -n user.update-interval -v biweekly /usr/lib/opt/1Password"
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
