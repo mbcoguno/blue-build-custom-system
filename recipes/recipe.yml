@@ -92,10 +92,8 @@ modules:
       files:
         # - https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo
         - vivaldi-x86_64.repo
-      keys:
-        # - https://pkg.cloudflareclient.com/pubkey.gpg
-        - https://repo.vivaldi.com/stable/linux_signing_key.pub
-        - https://repo.protonvpn.com/fedora-45-stable/public_key.asc
+      # keys:
+      #   # - https://pkg.cloudflareclient.com/pubkey.gpg
       copr:
         - bazzite-org/bazzite
         - secureblue/packages
