@@ -46,64 +46,143 @@ jobs:
             | jq -r '.Digest')
           echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
 
-      - name: Check DNF package updates
-        id: dnf-pkgs
+      # Any failed fetch fails the job instead of changing the hash, so a
+      # network error never triggers a scheduled build.
+      - name: Check package updates
+        id: packages
+        shell: bash
         run: |
+          # Let `set -e` (from `shell: bash`) apply inside $(...) too.
+          shopt -s inherit_errexit
+
+          # Print, one per line and sorted, the NEVRA of every package in the
+          # x86_64 RPM repo at $1 that installing packages $2... from it would
+          # pull in: the packages themselves plus their Requires and
+          # Recommends, followed recursively, as far as the same repo can
+          # satisfy them. Only the newest build of each package counts, so
+          # pruning old builds from the repo doesn't change the output.
+          # Packages the repo doesn't have are ignored.
+          repo_package_nevras() {
+            local baseurl=${1%/} href
+            local -a decompress
+            shift
+            href=$(curl -fsSL --retry 3 --max-time 300 "$baseurl/repodata/repomd.xml" \
+              | yq -p xml -o json '.repomd.data' \
+              | jq -r '(if type == "array" then .[] else . end)
+                       | select(."+@type" == "primary") | .location."+@href"')
+            if [ -z "$href" ]; then
+              echo "no primary metadata listed in $baseurl/repodata/repomd.xml" >&2
+              return 1
+            fi
+            case "$href" in
+              *.gz) decompress=(gzip -dc) ;;
+              *.zst) decompress=(zstd -dc) ;;
+              *.xz) decompress=(xz -dc) ;;
+              *.xml) decompress=(cat) ;;
+              *)
+                echo "unsupported primary metadata compression: $href" >&2
+                return 1
+                ;;
+            esac
+            curl -fsSL --retry 3 --max-time 300 "$baseurl/$href" \
+              | "${decompress[@]}" \
+              | yq -p xml -o json '.metadata.package' \
+              | jq -r --args '
+                  # yq turns a single child element into an object and several into an array.
+                  def arr: if type == "array" then . elif . == null then [] else [.] end;
+                  # dnf installs only the newest build of each x86_64 or noarch package.
+                  [ arr[] | select(.arch == "x86_64" or .arch == "noarch") ]
+                  | group_by([.name, .arch])
+                  | map(max_by(.time."+@build" // "0" | tonumber))
+                  | [ .[]
+                    | (.format | if type == "object" then . else {} end) as $f
+                    | {
+                        name,
+                        nevra: "\(.name)-\(.version."+@epoch" // "0"):\(.version."+@ver")-\(.version."+@rel").\(.arch)",
+                        provides: [.name,
+                                   ($f."rpm:provides"."rpm:entry" | arr[] | ."+@name"),
+                                   ($f.file | arr[] | if type == "object" then ."+content" else . end)],
+                        requires: [($f."rpm:requires"."rpm:entry", $f."rpm:recommends"."rpm:entry")
+                                   | arr[] | ."+@name"]
+                      } ] as $pkgs
+                  | (reduce $pkgs[] as $p ({}; reduce $p.provides[] as $x (.; .[$x] += [$p.name]))) as $providers
+                  | (reduce $pkgs[] as $p ({}; .[$p.name] += $p.requires)) as $requires
+                  | {todo: $ARGS.positional, seen: {}}
+                  | until(.todo | length == 0;
+                      .todo[0] as $n
+                      | .todo |= .[1:]
+                      | if .seen[$n] then .
+                        else .seen[$n] = true | .todo += [$requires[$n][]? | $providers[.][]?]
+                        end)
+                  | .seen as $names
+                  | [$pkgs[] | select($names[.name]) | .nevra] | unique[]
+                ' "$@"
+          }
+
           FEDORA_VER="${{ steps.recipe.outputs.fedora_version }}"
+          mapfile -t PKGS < <(yq '.modules[] | select(.type == "dnf") | .install.packages[]' recipes/recipe.yml)
+          mapfile -t COPRS < <(yq '.modules[] | select(.type == "dnf") | .repos.copr[]' recipes/recipe.yml)
+          mapfile -t REPO_FILES < <(yq '.modules[] | select(.type == "dnf") | .repos.files[]' recipes/recipe.yml)
           METADATA=""
 
-          # Check COPR repos
-          while IFS= read -r COPR; do
-            OWNER="${COPR%%/*}"
-            PROJECT="${COPR##*/}"
-            URL="https://download.copr.fedorainfracloud.org/results/${OWNER}/${PROJECT}/fedora-${FEDORA_VER}-x86_64/repodata/repomd.xml"
-            METADATA+=$(curl -sfL "$URL" | grep -o '<revision>[^<]*</revision>' || true)
-          done < <(yq '.modules[] | select(.type == "dnf") | .repos.copr[]' recipes/recipe.yml)
+          # Third-party repos: compare the versions of the listed packages and
+          # of what they pull in from the same repo, not the repo revision,
+          # which changes whenever the repo rebuilds any package.
+          for COPR in "${COPRS[@]}"; do
+            BASEURL="https://download.copr.fedorainfracloud.org/results/${COPR%%/*}/${COPR##*/}/fedora-${FEDORA_VER}-x86_64"
+            NEVRAS=$(repo_package_nevras "$BASEURL" "${PKGS[@]}")
+            METADATA+="${NEVRAS}"$'\n'
+          done
 
-          # Check repo files (local files and remote URLs)
-          while IFS= read -r REPO_REF; do
+          # Repo files (local files and remote URLs)
+          for REPO_REF in "${REPO_FILES[@]}"; do
             if [[ "$REPO_REF" == http* ]]; then
-              BASEURL=$(curl -sfL "$REPO_REF" | grep '^baseurl=' | head -1 | cut -d= -f2-)
+              REPO_TEXT=$(curl -fsSL --retry 3 --max-time 60 "$REPO_REF")
             else
-              BASEURL=$(grep '^baseurl=' "files/dnf/$REPO_REF" | head -1 | cut -d= -f2-)
+              REPO_TEXT=$(cat "files/dnf/$REPO_REF")
             fi
-            if [ -n "$BASEURL" ]; then
-              BASEURL=$(echo "$BASEURL" | sed "s/\\\$releasever/$FEDORA_VER/g; s/\\\$basearch/x86_64/g; s/%OS_VERSION%/$FEDORA_VER/g")
-              METADATA+=$(curl -sfL "${BASEURL}/repodata/repomd.xml" | grep -o '<revision>[^<]*</revision>' || true)
+            BASEURL=$(grep '^baseurl=' <<<"$REPO_TEXT" | head -1 | cut -d= -f2- || true)
+            if [ -z "$BASEURL" ]; then
+              echo "::warning::${REPO_REF} has no baseurl= line; its packages are not checked"
+              continue
             fi
-          done < <(yq '.modules[] | select(.type == "dnf") | .repos.files[]' recipes/recipe.yml)
+            BASEURL=$(echo "$BASEURL" | sed "s/\\\$releasever/$FEDORA_VER/g; s/\\\$basearch/x86_64/g; s/%OS_VERSION%/$FEDORA_VER/g")
+            NEVRAS=$(repo_package_nevras "$BASEURL" "${PKGS[@]}")
+            METADATA+="${NEVRAS}"$'\n'
+          done
 
           # Check Fedora official packages via Bodhi
-          while IFS= read -r PKG; do
-            UPDATE_ID=$(curl -sfL \
-              "https://bodhi.fedoraproject.org/updates/?packages=${PKG}&releases=F${FEDORA_VER}&status=stable&rows_per_page=1&content_type=rpm" \
-              | jq -r '.updates[0].updateid // empty' 2>/dev/null || true)
+          for PKG in "${PKGS[@]}"; do
+            RESPONSE=$(curl -fsSL --retry 3 --max-time 60 \
+              "https://bodhi.fedoraproject.org/updates/?packages=${PKG}&releases=F${FEDORA_VER}&status=stable&rows_per_page=1&content_type=rpm")
+            UPDATE_ID=$(jq -r '.updates[0].updateid // empty' <<<"$RESPONSE")
             METADATA+="${PKG}=${UPDATE_ID};"
-          done < <(yq '.modules[] | select(.type == "dnf") | .install.packages[]' recipes/recipe.yml)
+          done
 
+          # Logged so consecutive runs can be compared to see what changed.
+          echo "$METADATA"
           HASH=$(echo "$METADATA" | sha256sum | cut -d' ' -f1)
-          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          echo "dnf_hash=$HASH" >> "$GITHUB_OUTPUT"
 
-      - name: Check 1Password repo metadata
-        id: onepassword
-        run: |
-          REVISION=$(curl -sfL "https://downloads.1password.com/linux/rpm/stable/x86_64/repodata/repomd.xml" \
-            | grep -o '<revision>[^<]*</revision>' || true)
-          HASH=$(echo "$REVISION" | sha256sum | cut -d' ' -f1)
-          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          # 1Password: the bling module installs these two packages from this repo.
+          NEVRAS=$(repo_package_nevras \
+            https://downloads.1password.com/linux/rpm/stable/x86_64 1password 1password-cli)
+          echo "$NEVRAS"
+          HASH=$(echo "$NEVRAS" | sha256sum | cut -d' ' -f1)
+          echo "onepassword_hash=$HASH" >> "$GITHUB_OUTPUT"
 
       - name: Restore cached state
         uses: actions/cache/restore@v6
         with:
           path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
+          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.packages.outputs.dnf_hash }}-${{ steps.packages.outputs.onepassword_hash }}
           restore-keys: |
             upstream-state-${{ steps.recipe.outputs.image_version }}-
 
       - name: Compare with cached state
         id: compare
         run: |
-          CURRENT="${{ steps.upstream.outputs.digest }}:${{ steps.dnf-pkgs.outputs.hash }}:${{ steps.onepassword.outputs.hash }}"
+          CURRENT="${{ steps.upstream.outputs.digest }}:${{ steps.packages.outputs.dnf_hash }}:${{ steps.packages.outputs.onepassword_hash }}"
           PREVIOUS=""
           if [ -f upstream-state.txt ]; then
             PREVIOUS=$(cat upstream-state.txt)
@@ -122,16 +201,18 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.dnf-pkgs.outputs.hash }}-${{ steps.onepassword.outputs.hash }}
+          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.packages.outputs.dnf_hash }}-${{ steps.packages.outputs.onepassword_hash }}
 
   bluebuild:
     name: Build Custom Image
     needs: check-upstream
-    # On schedule: only build if upstream image has been updated
-    # On push/PR/workflow_dispatch: always build
+    # On schedule: only build if check-upstream detected an update; a failed
+    # check builds nothing.
+    # On push/PR/workflow_dispatch: always build, even if check-upstream failed.
     if: >-
-      needs.check-upstream.outputs.has_update == 'true' ||
-      github.event_name != 'schedule'
+      ${{ !cancelled() &&
+      (needs.check-upstream.outputs.has_update == 'true' ||
+      github.event_name != 'schedule') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
