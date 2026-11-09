@@ -152,5 +152,9 @@ modules:
       # https://github.com/coreos/chunkah#customizing-the-layers
       - "setfattr -n user.component -v nerd-fonts /usr/share/fonts/nerd-fonts && setfattr -n user.update-interval -v quarterly /usr/share/fonts/nerd-fonts"
       - "setfattr -n user.component -v 1password /usr/lib/opt/1Password && setfattr -n user.update-interval -v biweekly /usr/lib/opt/1Password"
+      # chunkah stamps an xattr component's layer with the component's newest
+      # mtime, and these directories carry the build time, so both layers
+      # changed on every rebuild. Zero their mtimes, as the base image's are.
+      - "find /usr/share/fonts/nerd-fonts /usr/lib/opt/1Password -exec touch -h -d @0 {} +"
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
