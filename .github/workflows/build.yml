@@ -24,6 +24,8 @@ jobs:
       contents: read
     outputs:
       has_update: ${{ steps.compare.outputs.has_update }}
+      state: ${{ steps.compare.outputs.state }}
+      state_key: ${{ steps.recipe.outputs.state_key }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -37,6 +39,9 @@ jobs:
           echo "base_image=$BASE_IMAGE" >> "$GITHUB_OUTPUT"
           echo "image_version=$IMAGE_VERSION" >> "$GITHUB_OUTPUT"
           echo "fedora_version=$FEDORA_VERSION" >> "$GITHUB_OUTPUT"
+          # Unique per run attempt, so restoring it always misses and falls
+          # back to the newest cache under the prefix: the last recorded state.
+          echo "state_key=upstream-state-$IMAGE_VERSION-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
 
       - name: Get upstream image digest
         id: upstream
@@ -171,11 +176,11 @@ jobs:
           HASH=$(echo "$NEVRAS" | sha256sum | cut -d' ' -f1)
           echo "onepassword_hash=$HASH" >> "$GITHUB_OUTPUT"
 
-      - name: Restore cached state
+      - name: Restore last recorded state
         uses: actions/cache/restore@v6
         with:
           path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.packages.outputs.dnf_hash }}-${{ steps.packages.outputs.onepassword_hash }}
+          key: ${{ steps.recipe.outputs.state_key }}
           restore-keys: |
             upstream-state-${{ steps.recipe.outputs.image_version }}-
 
@@ -194,14 +199,7 @@ jobs:
             echo "Updates detected"
             echo "has_update=true" >> "$GITHUB_OUTPUT"
           fi
-          echo "$CURRENT" > upstream-state.txt
-
-      - name: Save state to cache
-        if: steps.compare.outputs.has_update == 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: upstream-state.txt
-          key: upstream-state-${{ steps.recipe.outputs.image_version }}-${{ steps.upstream.outputs.digest }}-${{ steps.packages.outputs.dnf_hash }}-${{ steps.packages.outputs.onepassword_hash }}
+          echo "state=$CURRENT" >> "$GITHUB_OUTPUT"
 
   bluebuild:
     name: Build Custom Image
@@ -244,3 +242,26 @@ jobs:
           rechunk_clear_plan: true
           # Also applies to chunkah despite the action's description; matches upstream Bazzite.
           max_layers: 256
+
+  record-state:
+    name: Record upstream state
+    needs: [check-upstream, bluebuild]
+    # Record the state only after every build succeeded, so a failed or
+    # cancelled build is retried by the next scheduled run.
+    if: >-
+      ${{ needs.check-upstream.outputs.has_update == 'true' &&
+      needs.bluebuild.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Write state file
+        env:
+          STATE: ${{ needs.check-upstream.outputs.state }}
+        run: echo "$STATE" > upstream-state.txt
+
+      - name: Save state to cache
+        uses: actions/cache/save@v6
+        with:
+          path: upstream-state.txt
+          key: ${{ needs.check-upstream.outputs.state_key }}
