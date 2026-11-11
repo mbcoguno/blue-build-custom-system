@@ -153,8 +153,26 @@ modules:
       - "setfattr -n user.component -v nerd-fonts /usr/share/fonts/nerd-fonts && setfattr -n user.update-interval -v quarterly /usr/share/fonts/nerd-fonts"
       - "setfattr -n user.component -v 1password /usr/lib/opt/1Password && setfattr -n user.update-interval -v biweekly /usr/lib/opt/1Password"
       # chunkah stamps an xattr component's layer with the component's newest
-      # mtime, and these directories carry the build time, so both layers
-      # changed on every rebuild. Zero their mtimes, as the base image's are.
+      # mtime, capped at the image creation time (the base image's, see the
+      # bluebuild job), so both layers would change whenever the base image
+      # does. Zero their mtimes, as the base image's are.
       - "find /usr/share/fonts/nerd-fonts /usr/lib/opt/1Password -exec touch -h -d @0 {} +"
+      # The snippets below keep chunkah's layers unchanged when a rebuild
+      # changes none of their files' contents, so they must run after every
+      # module that installs packages or fonts.
+      # fc-cache writes each font directory's mtime into its cache file, and
+      # the font package's RPM trigger reruns fc-cache whenever a package adds
+      # fonts. Zero every font directory's mtime, as the base image's are, and
+      # rebuild every system cache last. Don't set SOURCE_DATE_EPOCH for
+      # fc-cache: fontconfig 2.18.3 then deletes every system cache.
+      - "find /usr/share/fonts -type d -exec touch -h -d @0 {} + && fc-cache --system-only --force"
+      # SQLite rewrites rpmdb.sqlite-shm on every rpm transaction. Move it out
+      # of chunkah/unclaimed and keep it with the rpmdb, which changes on every
+      # build anyway. Tagging the files, not the directory, also covers their
+      # hard links in rpm-ostree-base-db.
+      - "setfattr -n user.component -v rpmdb /usr/share/rpm/rpmdb.sqlite* && setfattr -n user.update-interval -v daily /usr/share/rpm/rpmdb.sqlite*"
+      # dnf5's transaction history would otherwise change the rpm/dnf5 layer
+      # on every build; the base image deletes it too.
+      - "rm -rf /usr/lib/sysimage/libdnf5/*"
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully

@@ -223,6 +223,28 @@ jobs:
           # !! Add your recipes here
           - recipe.yml
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # chunkah caps the mtime of every file it can't date from a package
+      # (files in no component, big files, xattr components) at the image
+      # creation time, which podman takes from SOURCE_DATE_EPOCH. Pin it to the
+      # base image's creation time, so a rebuild on the same base gives these
+      # files the same mtimes instead of the build time. chunkah also uses it
+      # as the current time when rating how often packages change, so it must
+      # stay recent; 0 would rate every package as unstable.
+      - name: Pin image creation time to the base image's
+        shell: bash
+        env:
+          RECIPE: ${{ matrix.recipe }}
+        run: |
+          BASE_IMAGE=$(yq '.["base-image"]' "recipes/$RECIPE")
+          IMAGE_VERSION=$(yq '.["image-version"]' "recipes/$RECIPE")
+          CREATED=$(skopeo inspect --no-tags "docker://$BASE_IMAGE:$IMAGE_VERSION" | jq -r '.Created')
+          EPOCH=$(date -u -d "$CREATED" +%s)
+          echo "Base image created at $CREATED ($EPOCH)"
+          echo "SOURCE_DATE_EPOCH=$EPOCH" >> "$GITHUB_ENV"
+
       # the build is fully handled by the reusable github action
       - name: Build Custom Image
         uses: blue-build/github-action@v1.13
