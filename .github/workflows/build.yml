@@ -3,7 +3,6 @@ on:
   schedule:
     - cron:
         "27 20 * * *" # build at 20:27 UTC every day
-        # (20 minutes after last ublue images start building)
   push:
     paths-ignore: # don't rebuild if only documentation has changed
       - "**.md"
@@ -233,16 +232,27 @@ jobs:
       # files the same mtimes instead of the build time. chunkah also uses it
       # as the current time when rating how often packages change, so it must
       # stay recent; 0 would rate every package as unstable.
-      - name: Pin image creation time to the base image's
+      # podman also writes it into the manifest's
+      # org.opencontainers.image.created, which rpm-ostree takes as the
+      # update's timestamp, and rpm-ostree refuses an update older than the
+      # deployed image. So never pin it below the creation time of the image
+      # now tagged latest, even if the base image goes back to an older build.
+      - name: Pin image creation time
         shell: bash
         env:
           RECIPE: ${{ matrix.recipe }}
         run: |
           BASE_IMAGE=$(yq '.["base-image"]' "recipes/$RECIPE")
           IMAGE_VERSION=$(yq '.["image-version"]' "recipes/$RECIPE")
-          CREATED=$(skopeo inspect --no-tags "docker://$BASE_IMAGE:$IMAGE_VERSION" | jq -r '.Created')
-          EPOCH=$(date -u -d "$CREATED" +%s)
-          echo "Base image created at $CREATED ($EPOCH)"
+          IMAGE_NAME=$(yq '.name' "recipes/$RECIPE")
+          LATEST_IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/$IMAGE_NAME:latest"
+          BASE_CREATED=$(skopeo inspect --no-tags "docker://$BASE_IMAGE:$IMAGE_VERSION" | jq -r '.Created')
+          LATEST_CREATED=$(skopeo inspect --no-tags "docker://$LATEST_IMAGE" | jq -r '.Created')
+          BASE_EPOCH=$(date -u -d "$BASE_CREATED" +%s)
+          LATEST_EPOCH=$(date -u -d "$LATEST_CREATED" +%s)
+          EPOCH=$((BASE_EPOCH > LATEST_EPOCH ? BASE_EPOCH : LATEST_EPOCH))
+          echo "Base image created at $BASE_CREATED ($BASE_EPOCH)"
+          echo "$LATEST_IMAGE created at $LATEST_CREATED ($LATEST_EPOCH)"
           echo "SOURCE_DATE_EPOCH=$EPOCH" >> "$GITHUB_ENV"
 
       # the build is fully handled by the reusable github action

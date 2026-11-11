@@ -153,9 +153,9 @@ modules:
       - "setfattr -n user.component -v nerd-fonts /usr/share/fonts/nerd-fonts && setfattr -n user.update-interval -v quarterly /usr/share/fonts/nerd-fonts"
       - "setfattr -n user.component -v 1password /usr/lib/opt/1Password && setfattr -n user.update-interval -v biweekly /usr/lib/opt/1Password"
       # chunkah stamps an xattr component's layer with the component's newest
-      # mtime, capped at the image creation time (the base image's, see the
-      # bluebuild job), so both layers would change whenever the base image
-      # does. Zero their mtimes, as the base image's are.
+      # mtime, capped at the image creation time (see the bluebuild job), so
+      # both layers would change whenever the base image does. Zero their
+      # mtimes, as the base image's are.
       - "find /usr/share/fonts/nerd-fonts /usr/lib/opt/1Password -exec touch -h -d @0 {} +"
       # The snippets below keep chunkah's layers unchanged when a rebuild
       # changes none of their files' contents, so they must run after every
