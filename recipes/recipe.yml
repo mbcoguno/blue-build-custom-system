@@ -84,6 +84,17 @@ modules:
           - com.heroicgameslauncher.hgl
           - com.obsproject.Studio.Plugin.PipeWireAudioCapture
 
+  # Snapshot the packages the base image already lists as installed from the
+  # fedora or updates repo, so the script module after the dnf modules can
+  # leave them out of its list of Fedora packages.
+  - type: script
+    snippets:
+      - |
+        set -o pipefail
+        install -d -m 0755 /usr/share/blue-build-custom-system
+        dnf5 --quiet repoquery --installed --installed-from-repo=fedora,updates --queryformat '%{name}\n' \
+          | LC_ALL=C sort -u > /usr/share/blue-build-custom-system/base-fedora-packages
+
   # https://blue-build.org/blog/dnf-module/
   - type: dnf
     # https://github.com/boredsquirrel/browserscript-fedora-atomic
@@ -171,6 +182,29 @@ modules:
       # build anyway. Tagging the files, not the directory, also covers their
       # hard links in rpm-ostree-base-db.
       - "setfattr -n user.component -v rpmdb /usr/share/rpm/rpmdb.sqlite* && setfattr -n user.update-interval -v daily /usr/share/rpm/rpmdb.sqlite*"
+      # List every package the dnf modules installed from the fedora or
+      # updates repo, including dependencies the recipe doesn't name, for
+      # check-upstream in .github/workflows/build.yml, which reads the list
+      # from the image now tagged latest by its path and its component
+      # (xattr/fedora-packages). dnf5 also lists packages the base image
+      # installed from those repos; the script module before the dnf modules
+      # saved their names, and this leaves them out, as their updates reach
+      # the image only through the base image. dnf5 records where each
+      # package came from in the state the next snippet deletes, so this
+      # must run before it. The list's own component and zero mtimes keep its
+      # layer unchanged until the list changes.
+      - |
+        set -o pipefail
+        dnf5 --quiet repoquery --installed --installed-from-repo=fedora,updates --queryformat '%{name}\n' \
+          | LC_ALL=C sort -u \
+          | LC_ALL=C comm -23 - /usr/share/blue-build-custom-system/base-fedora-packages \
+          > /usr/share/blue-build-custom-system/fedora-packages
+        rm /usr/share/blue-build-custom-system/base-fedora-packages
+        test -s /usr/share/blue-build-custom-system/fedora-packages
+        cat /usr/share/blue-build-custom-system/fedora-packages
+        setfattr -n user.component -v fedora-packages /usr/share/blue-build-custom-system /usr/share/blue-build-custom-system/fedora-packages
+        setfattr -n user.update-interval -v monthly /usr/share/blue-build-custom-system /usr/share/blue-build-custom-system/fedora-packages
+        touch -h -d @0 /usr/share/blue-build-custom-system /usr/share/blue-build-custom-system/fedora-packages
       # dnf5's transaction history would otherwise change the rpm/dnf5 layer
       # on every build; the base image deletes it too.
       - "rm -rf /usr/lib/sysimage/libdnf5/*"

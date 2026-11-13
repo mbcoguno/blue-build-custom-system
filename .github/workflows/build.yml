@@ -123,6 +123,84 @@ jobs:
                 ' "$@"
           }
 
+          # Print, one per line and sorted, the NEVRA of the newest x86_64 or
+          # noarch build of each package named in file $2 (one name per line)
+          # that the RPM repo at $1 has, read from its SQLite primary
+          # metadata. Names the repo doesn't have are ignored.
+          repo_newest_nevras() {
+            local baseurl=${1%/} names=$2 href db
+            local -a decompress
+            href=$(curl -fsSL --retry 3 --max-time 300 "$baseurl/repodata/repomd.xml" \
+              | yq -p xml -o json '.repomd.data' \
+              | jq -r '(if type == "array" then .[] else . end)
+                       | select(."+@type" == "primary_db") | .location."+@href"')
+            if [ -z "$href" ]; then
+              echo "no primary_db metadata listed in $baseurl/repodata/repomd.xml" >&2
+              return 1
+            fi
+            case "$href" in
+              *.zst) decompress=(zstd -dc) ;;
+              *.xz) decompress=(xz -dc) ;;
+              *.bz2) decompress=(bzip2 -dc) ;;
+              *.gz) decompress=(gzip -dc) ;;
+              *)
+                echo "unsupported primary_db compression: $href" >&2
+                return 1
+                ;;
+            esac
+            db=$(mktemp)
+            curl -fsSL --retry 3 --max-time 300 "$baseurl/$href" | "${decompress[@]}" > "$db"
+            sqlite3 -bail "$db" \
+              'CREATE TABLE wanted (name TEXT)' \
+              ".import --csv \"$names\" wanted" \
+              "SELECT name || '-' || coalesce(epoch, '0') || ':' || version || '-' || release || '.' || arch
+               FROM packages AS p
+               WHERE arch IN ('x86_64', 'noarch')
+                 AND name IN (SELECT name FROM wanted)
+                 AND time_build = (SELECT max(time_build) FROM packages
+                                   WHERE name = p.name AND arch = p.arch)
+               ORDER BY 1"
+            rm -f "$db"
+          }
+
+          # Print file $4 of the amd64 image ghcr.io/$1 at tag or digest $2,
+          # from the layer that chunkah annotated with component $3, or
+          # nothing if no layer holds that component.
+          image_component_file() {
+            local repo=$1 ref=$2 component=$3 path=$4 token manifest digest layer
+            local accept='application/vnd.oci.image.index.v1+json,application/vnd.oci.image.manifest.v1+json'
+            local -a decompress
+            token=$(curl -fsSL --retry 3 --max-time 60 \
+              "https://ghcr.io/token?scope=repository:$repo:pull" | jq -r '.token')
+            manifest=$(curl -fsSL --retry 3 --max-time 60 -H "Authorization: Bearer $token" \
+              -H "Accept: $accept" "https://ghcr.io/v2/$repo/manifests/$ref")
+            if jq -e '.manifests' <<<"$manifest" > /dev/null; then
+              digest=$(jq -r '.manifests[] | select(.platform.architecture == "amd64") | .digest' <<<"$manifest")
+              manifest=$(curl -fsSL --retry 3 --max-time 60 -H "Authorization: Bearer $token" \
+                -H "Accept: $accept" "https://ghcr.io/v2/$repo/manifests/$digest")
+            fi
+            # chunkah may pack several components into one layer; the
+            # annotation then lists them separated by spaces.
+            layer=$(jq -c --arg c "$component" \
+              'first(.layers[] | select(.annotations["org.chunkah.component"] // ""
+                                        | split(" ") | any(. == $c))) // empty' <<<"$manifest")
+            if [ -z "$layer" ]; then
+              return 0
+            fi
+            case $(jq -r '.mediaType' <<<"$layer") in
+              *+zstd) decompress=(zstd -dc) ;;
+              *+gzip | *.tar.gzip) decompress=(gzip -dc) ;;
+              *)
+                echo "unsupported layer media type: $layer" >&2
+                return 1
+                ;;
+            esac
+            curl -fsSL --retry 3 --max-time 300 -H "Authorization: Bearer $token" \
+              "https://ghcr.io/v2/$repo/blobs/$(jq -r '.digest' <<<"$layer")" \
+              | "${decompress[@]}" \
+              | tar -xOf - "$path"
+          }
+
           FEDORA_VER="${{ steps.recipe.outputs.fedora_version }}"
           mapfile -t PKGS < <(yq '.modules[] | select(.type == "dnf") | .install.packages[]' recipes/recipe.yml)
           mapfile -t COPRS < <(yq '.modules[] | select(.type == "dnf") | .repos.copr[]' recipes/recipe.yml)
@@ -155,13 +233,23 @@ jobs:
             METADATA+="${NEVRAS}"$'\n'
           done
 
-          # Check Fedora official packages via Bodhi
-          for PKG in "${PKGS[@]}"; do
-            RESPONSE=$(curl -fsSL --retry 3 --max-time 60 \
-              "https://bodhi.fedoraproject.org/updates/?packages=${PKG}&releases=F${FEDORA_VER}&status=stable&rows_per_page=1&content_type=rpm")
-            UPDATE_ID=$(jq -r '.updates[0].updateid // empty' <<<"$RESPONSE")
-            METADATA+="${PKG}=${UPDATE_ID};"
-          done
+          # Fedora's own repos: every package the last build installed from
+          # the fedora or updates repo, as the script module in the recipe
+          # lists them in the image now tagged latest, and the newest build of
+          # each in the updates repo. The fedora repo doesn't change after the
+          # release, so every update lands in updates.
+          IMAGE_REPO="${GITHUB_REPOSITORY_OWNER,,}/$(yq '.name' recipes/recipe.yml)"
+          FEDORA_PKGS="$RUNNER_TEMP/fedora-packages"
+          image_component_file "$IMAGE_REPO" latest xattr/fedora-packages \
+            usr/share/blue-build-custom-system/fedora-packages > "$FEDORA_PKGS"
+          if [ -s "$FEDORA_PKGS" ]; then
+            NEVRAS=$(repo_newest_nevras \
+              "https://dl.fedoraproject.org/pub/fedora/linux/updates/${FEDORA_VER}/Everything/x86_64" \
+              "$FEDORA_PKGS")
+            METADATA+="${NEVRAS}"$'\n'
+          else
+            echo "::warning::ghcr.io/${IMAGE_REPO}:latest lists no Fedora packages; their updates are not checked"
+          fi
 
           # Logged so consecutive runs can be compared to see what changed.
           echo "$METADATA"
