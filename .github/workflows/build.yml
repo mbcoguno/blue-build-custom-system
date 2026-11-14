@@ -163,11 +163,17 @@ jobs:
             rm -f "$db"
           }
 
-          # Print file $4 of the amd64 image ghcr.io/$1 at tag or digest $2,
-          # from the layer that chunkah annotated with component $3, or
-          # nothing if no layer holds that component.
-          image_component_file() {
-            local repo=$1 ref=$2 component=$3 path=$4 token manifest digest layer
+          # Print, one per line and sorted, the name of every package that the
+          # build of the amd64 image ghcr.io/$1 at tag or digest $2 installed
+          # or upgraded from Fedora's own repos, dependencies included, or
+          # nothing if no layer of the image holds chunkah component
+          # xattr/rpmdb. These are the packages that the image's rpmdb lists
+          # with vendor "Fedora Project" and an install transaction later than
+          # the image's org.opencontainers.image.created label, which holds
+          # the time its build started; the base image installed its own
+          # packages before that.
+          image_fedora_packages() {
+            local repo=$1 ref=$2 token manifest digest layer started dir
             local accept='application/vnd.oci.image.index.v1+json,application/vnd.oci.image.manifest.v1+json'
             local -a decompress
             token=$(curl -fsSL --retry 3 --max-time 60 \
@@ -181,9 +187,8 @@ jobs:
             fi
             # chunkah may pack several components into one layer; the
             # annotation then lists them separated by spaces.
-            layer=$(jq -c --arg c "$component" \
-              'first(.layers[] | select(.annotations["org.chunkah.component"] // ""
-                                        | split(" ") | any(. == $c))) // empty' <<<"$manifest")
+            layer=$(jq -c 'first(.layers[] | select(.annotations["org.chunkah.component"] // ""
+                                                     | split(" ") | any(. == "xattr/rpmdb"))) // empty' <<<"$manifest")
             if [ -z "$layer" ]; then
               return 0
             fi
@@ -195,10 +200,24 @@ jobs:
                 return 1
                 ;;
             esac
+            # The label reads like 2026-11-14T00:58:24.582246979+00:00.
+            started=$(curl -fsSL --retry 3 --max-time 60 -H "Authorization: Bearer $token" \
+                "https://ghcr.io/v2/$repo/blobs/$(jq -r '.config.digest' <<<"$manifest")" \
+              | jq -r '.config.Labels["org.opencontainers.image.created"]
+                       | sub("\\.[0-9]+"; "") | sub("\\+00:00$"; "Z") | fromdateiso8601')
+            # The layer holds the rpmdb files with their hard links in
+            # rpm-ostree-base-db, so extract all of it.
+            dir=$(mktemp -d)
             curl -fsSL --retry 3 --max-time 300 -H "Authorization: Bearer $token" \
               "https://ghcr.io/v2/$repo/blobs/$(jq -r '.digest' <<<"$layer")" \
               | "${decompress[@]}" \
-              | tar -xOf - "$path"
+              | tar -xf - -C "$dir"
+            # rpm 6.0 builds sqlite rpmdb support by default.
+            rpm --dbpath "$dir/usr/share/rpm" --define '_db_backend sqlite' -qa \
+                --queryformat '%{INSTALLTID}\t%{VENDOR}\t%{NAME}\n' \
+              | awk -F'\t' -v after="$started" '$1 > after && $2 == "Fedora Project" {print $3}' \
+              | LC_ALL=C sort -u
+            rm -rf "$dir"
           }
 
           FEDORA_VER="${{ steps.recipe.outputs.fedora_version }}"
@@ -233,22 +252,21 @@ jobs:
             METADATA+="${NEVRAS}"$'\n'
           done
 
-          # Fedora's own repos: every package the last build installed from
-          # the fedora or updates repo, as the script module in the recipe
-          # lists them in the image now tagged latest, and the newest build of
-          # each in the updates repo. The fedora repo doesn't change after the
-          # release, so every update lands in updates.
+          # Fedora's own repos: every package the last build installed or
+          # upgraded from them, as the rpmdb in the image now tagged latest
+          # lists them, and the newest build of each in the updates repo. The
+          # fedora repo doesn't change after the release, so every update
+          # lands in updates.
           IMAGE_REPO="${GITHUB_REPOSITORY_OWNER,,}/$(yq '.name' recipes/recipe.yml)"
           FEDORA_PKGS="$RUNNER_TEMP/fedora-packages"
-          image_component_file "$IMAGE_REPO" latest xattr/fedora-packages \
-            usr/share/blue-build-custom-system/fedora-packages > "$FEDORA_PKGS"
+          image_fedora_packages "$IMAGE_REPO" latest > "$FEDORA_PKGS"
           if [ -s "$FEDORA_PKGS" ]; then
             NEVRAS=$(repo_newest_nevras \
               "https://dl.fedoraproject.org/pub/fedora/linux/updates/${FEDORA_VER}/Everything/x86_64" \
               "$FEDORA_PKGS")
             METADATA+="${NEVRAS}"$'\n'
           else
-            echo "::warning::ghcr.io/${IMAGE_REPO}:latest lists no Fedora packages; their updates are not checked"
+            echo "::warning::ghcr.io/${IMAGE_REPO}:latest has no xattr/rpmdb layer or lists no Fedora packages; their updates are not checked"
           fi
 
           # Logged so consecutive runs can be compared to see what changed.
