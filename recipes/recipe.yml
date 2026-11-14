@@ -185,6 +185,14 @@ modules:
       # every layer holding a file in one of them. Zero them all; OSTree
       # deploys every mtime as 0 anyway.
       - "find /usr/lib/.build-id -type d -exec touch -h -d @0 {} +"
+      # The dnf module enables a repo it adds only if `dnf5 repo info`, which
+      # it runs for every repo in parallel, lists that repo, and those runs
+      # can fail to load the Proton VPN repo, whose metadata they all
+      # download at once. Its override in
+      # /etc/dnf/repos.override.d/99-config_manager.repo, in chunkah/unclaimed,
+      # then goes missing. Set it here too; this changes nothing when the
+      # module already did.
+      - "dnf5 config-manager setopt protonvpn-fedora-stable.enabled=1"
       # SQLite rewrites rpmdb.sqlite-shm on every rpm transaction. Move it out
       # of chunkah/unclaimed and keep it with the rpmdb, which changes on every
       # build anyway. Tagging the files, not the directory, also covers their
